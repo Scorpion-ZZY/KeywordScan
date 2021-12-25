@@ -1,0 +1,8 @@
+filescan\FileScanService.class
+filescan\XLS2CSV.class
+filescan\Fileutil.class
+filescan\PloyEntity.class
+filescan\FileScanClient.class
+filescan\OfficeScanDesensitizationUtils.class
+filescan\SensitiveEntity.class
+filescan\ClientBean.class
