@@ -10,43 +10,54 @@ import java.io.*;
 import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
+import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
+import java.util.Properties;
 
 public class FileScanClient {
 
 
+    public static void main(String[] args) {
+        long starTime=System.currentTimeMillis();
 
-//    public static void main(String[] args) throws Exception {
 //        ClientBean clientBean = new ClientBean();
-//        Socket socket = new Socket("192.168.1.154",6111);
-//        ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
 //        String localHost = getIpAddress();
 //        clientBean.setIp(localHost);
-//        List<String> data = Fileutil.scanStart();
+//        List<String> data = scanStart();
+          scanStart();
 //        clientBean.setFilePathName(data);
-//        System.out.println("运行完毕");
-//        oos.writeObject(clientBean);
-//        oos.writeObject(null);
-//        oos.flush();
-//        oos.close();
-//        socket.close();
-//    }
 
-
-    public static void main(String[] args) {
-        ClientBean clientBean = new ClientBean();
-        String localHost = getIpAddress();
-        clientBean.setIp(localHost);
-        List<String> data = Fileutil.scanStart();
-        clientBean.setFilePathName(data);
-        if (clientBean!=null){
-            generateRreport(clientBean);
-        }
-
-
+        long endTime=System.currentTimeMillis();
+        long Time=endTime-starTime;
+        System.out.println(Time);
+//
+//        if (clientBean!=null){
+//            generateRreport(clientBean);
+//        }
     }
 
+    /**
+     * 开始扫描 返回扫描结果
+     * @return
+     */
+    public static List<String> scanStart(){
+        Properties properties = System.getProperties();
+        String property = properties.getProperty("os.name");
+        List<String> data =new ArrayList<String>();
+        if (property.toLowerCase().contains("windows")){
+            data= Fileutil.searchFileType("windows");
+
+        }else {
+            data= Fileutil.searchFileType("linux");
+        }
+        return data;
+    }
+
+    /**
+     * 获取当前IP
+     * @return
+     */
     public static String getIpAddress() {
         try {
             Enumeration<NetworkInterface> allNetInterfaces = NetworkInterface.getNetworkInterfaces();
@@ -77,7 +88,7 @@ public class FileScanClient {
         String fileName = clientBean.getIp();
         List<String> filePathName = clientBean.getFilePathName();
         File desktopDir = FileSystemView.getFileSystemView() .getHomeDirectory();
-        String desktopPath = desktopDir.getAbsolutePath();
+        String desktopPath = desktopDir.getAbsolutePath(); //获取桌面路径  暂时没用 下面生产在当前目录下更方便
         desktopPath=fileName+"敏感信息报告.docx";
         System.out.println(desktopPath);
 
@@ -87,7 +98,7 @@ public class FileScanClient {
             XWPFParagraph p1 = doc.createParagraph(); //创建段落
             XWPFRun r1 = p1.createRun(); //创建段落文本
             for (String str: filePathName) {
-                p1.setAlignment(ParagraphAlignment.LEFT);
+                p1.setAlignment(ParagraphAlignment.LEFT); //追加在文档末尾处写入
                 r1.setText(str); //设置文本
                 r1.addCarriageReturn();
                 r1.setText("---------------------------------------------------");

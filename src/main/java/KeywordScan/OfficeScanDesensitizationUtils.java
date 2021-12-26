@@ -53,8 +53,8 @@ public class OfficeScanDesensitizationUtils {
         if (sensitives.size() > 0){
             Map<String , Integer> resultMap = new HashMap<>();
             for (SensitiveEntity sensitiveEntity:sensitiveEntities) {
-                String rules = sensitiveEntity.getRules();  //设置的策略规则
-                resultMap.put(rules,0);  //初始化map集合
+                String rules = sensitiveEntity.getRules();  //获取的策略规则
+                resultMap.put(rules,0);  //初始化map集合,记录当前文档设计策略规则计数
             }
             for (SensitiveEntity sensitiveEntity:sensitives) {
                 String rules = sensitiveEntity.getRules();
@@ -65,11 +65,17 @@ public class OfficeScanDesensitizationUtils {
 
             return "文件地址："+filePath+"  \r\n--->该文件中包含有有："+resultMap.toString();
         }
+
         return null;
     }
 
     /**
-     * 扫描文件是否为涉敏文件
+     *
+     * @param fileType 文件类型
+     * @param filePath 文件地址
+     * @param list  规则集合
+     * @param ployEntity  计算发现策略扫描区间（可设置文件扫描区间）
+     * @return
      */
     public static List<SensitiveEntity> scanFile(String fileType, String filePath, List<SensitiveEntity> list, PloyEntity ployEntity) {
         List<SensitiveEntity> sensitiveEntities = new ArrayList<SensitiveEntity>();
@@ -83,14 +89,12 @@ public class OfficeScanDesensitizationUtils {
             } else if (fileType.toLowerCase().contains("ppt")) {
                 sensitiveEntities = pptScanFile(fileType, filePath, list, ployEntity);
             } else if (fileType.toLowerCase().contains("pdf")) {
-//                System.out.println("扫描PDF类型文件");
                 sensitiveEntities = pdfScanFile(filePath, list, ployEntity);
             }else {
                 System.out.println("其他格式无法解析："+fileType.toLowerCase()+"文件地址："+filePath);
             }
         } catch (Exception e) {
             e.printStackTrace();
-//            System.out.println("扫描文件是否为涉敏文件异常:{"+e.getMessage()+"}");
             return sensitiveEntities;
         }
         return sensitiveEntities;
@@ -108,11 +112,11 @@ public class OfficeScanDesensitizationUtils {
         else if (ployEntity.isCustomize()) {
             //是否为自定义
             mapDiscoveryStrategy.put("start", ployEntity.getStart());
-            mapDiscoveryStrategy.put("end", ployEntity.getEnd() > size ? size : ployEntity.getEnd());
+            mapDiscoveryStrategy.put("end", Math.min(ployEntity.getEnd(), size));
         } else if (ployEntity.isTop100()) {
             // 是否扫描前100行
             mapDiscoveryStrategy.put("start", 0);
-            mapDiscoveryStrategy.put("end", 100 > size ? size : 100);
+            mapDiscoveryStrategy.put("end", Math.min(100, size));
         } else if (ployEntity.isLast100()) {
             // 是否扫描后100行
             mapDiscoveryStrategy.put("start", 100 > size ? 0 : size - 100);
@@ -274,7 +278,6 @@ public class OfficeScanDesensitizationUtils {
                         }
                         // 获取表格内容
                         String cellText = getCellValString(cell);
-//                        System.out.println("表格文本内容:{"+cellText+"}");
                         for (SensitiveEntity sensitiveEntity : list) {
                             matcher = matcherTxt(sensitiveEntity.getRules(),cellText);
                             if (matcher.find()) {
@@ -352,7 +355,7 @@ public class OfficeScanDesensitizationUtils {
                                 text = text.replaceFirst(group,"****");
                             }
                         }
-                        // 若集合中不存在改策略则加入集合
+                        // 若集合中不存该改策略则加入集合
 //                        if (!matchedSensitive.contains(sensitiveEntity)){
                             matchedSensitive.add(sensitiveEntity);
 //                        }
