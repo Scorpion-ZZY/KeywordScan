@@ -83,6 +83,7 @@ public class FileScanClient {
     }
     /**
      * 将接受到的数据生成报告
+     * 暂时搁置不用
      */
     private static void generateRreport(ClientBean clientBean){
         String fileName = clientBean.getIp();

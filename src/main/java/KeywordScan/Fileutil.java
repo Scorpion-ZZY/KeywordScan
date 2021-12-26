@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.Properties;
 
 import static KeywordScan.FileScanClient.getIpAddress;
+import static java.lang.Thread.sleep;
 import static jdk.nashorn.internal.objects.ArrayBufferView.length;
 
 /**
@@ -66,7 +67,6 @@ public class Fileutil {
 				System.out.print(getNChar(target.length(), '\b'));
 				System.out.print(target);
 
-				Thread.sleep(50);
 				index++;
 			}
 		}
@@ -127,7 +127,7 @@ public class Fileutil {
 
 				for (int i = 0; i < fileroots.length; ++i) {
 					List<String> lists = new ArrayList<String>();
-					int amount=0;
+					int amount=1;
 					File[] f = fileroots[i].listFiles();
 					if ((f == null) || (f.length <= 0))
 						continue;
@@ -148,6 +148,8 @@ public class Fileutil {
 
 					}
 					bufferedReader.close();
+					System.out.println();
+
 					for (String sss: lists) {
 						String[] split = sss.split("\\.");
 						String s = OfficeScanDesensitizationUtils.startStrategy(split[split.length - 1], sss,sensitiveEntities); //文件内容匹配关键字规则
@@ -177,18 +179,50 @@ public class Fileutil {
 				process = Runtime.getRuntime().exec(command);
 				BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(process.getInputStream(), Charset.forName("UTF-8")));
 				String line = "";
+				int amount=1;
 				while ((line = bufferedReader.readLine()) != null) {
-					String[] split = line.split("\\.");
-					String s = OfficeScanDesensitizationUtils.startStrategy(split[split.length - 1], line,sensitiveEntities);
+
+					System.out.print(ProgressBar.getNChar(String.valueOf(amount).length(), '\b'));
+					System.out.print(amount);
+					lists.add(line);
+					amount++;
+//						String[] split = line.split("\\.");
+//						String s = OfficeScanDesensitizationUtils.startStrategy(split[split.length - 1], line,sensitiveEntities);
+
+				}
+				bufferedReader.close();
+				System.out.println();
+
+				for (String sss: lists) {
+					String[] split = sss.split("\\.");
+					String s = OfficeScanDesensitizationUtils.startStrategy(split[split.length - 1], sss,sensitiveEntities); //文件内容匹配关键字规则
+					//如果返回的字符串为空 就代表当前文件没有匹配到关键字 不为空则匹配到了
 					if (s !=null){
-						lists.add(s);
+						bufferedWriter.write(s);
+						bufferedWriter.write("\r\n---------------------------------------------\r\n");
+						bufferedWriter.flush();
 					}
 				}
+//				while ((line = bufferedReader.readLine()) != null) {
+//					String[] split =  line.split("\\.");
+//
+//					String s = OfficeScanDesensitizationUtils.startStrategy(split[split.length - 1], line,sensitiveEntities);
+//					if (s !=null){
+//						bufferedWriter.write(s);
+//						bufferedWriter.write("\r\n---------------------------------------------\r\n");
+//						bufferedWriter.flush();
+//					}
+////					if (s !=null){
+////						lists.add(s);
+////					}
+//				}
+				bufferedWriter.close();
 				return lists;
 			}
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+
 			return null;
 	}
 
